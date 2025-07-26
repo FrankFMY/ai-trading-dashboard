@@ -17,6 +17,7 @@ export function useChat(): UseChatReturn {
         setMessages,
         setLoading,
         setError,
+        setInput: storeSetInput,
         clearChat: storeClearChat,
         clearError,
     } = useChatStore();
@@ -164,6 +165,7 @@ export function useChat(): UseChatReturn {
         error,
         sendMessage,
         clearChat,
+        setInput: storeSetInput,
     };
 }
 

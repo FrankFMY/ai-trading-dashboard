@@ -5,4 +5,3 @@ describe('Smoke test', () => {
         expect(true).toBe(true);
     });
 });
-

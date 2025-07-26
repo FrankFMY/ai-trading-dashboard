@@ -9,8 +9,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatRelativeTime } from '@/lib/utils';
 
 export default function AIChat() {
-    const { messages, input, isLoading, error, sendMessage, clearChat } =
-        useChat();
+    const {
+        messages,
+        input,
+        isLoading,
+        error,
+        sendMessage,
+        clearChat,
+        setInput,
+    } = useChat();
     const { data: cryptoData } = useCryptoData();
     const { toast } = useToast();
 
@@ -180,12 +187,11 @@ export default function AIChat() {
                     <input
                         value={input}
                         onChange={e => {
-                            // Здесь нужно добавить setInput из хука
-                            console.log('Input changed:', e.target.value);
+                            setInput(e.target.value);
                         }}
                         placeholder='Спросите о рынке криптовалют...'
                         disabled={isLoading}
-                        className='w-full pl-4 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
+                        className='w-full pl-4 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg
                      bg-white dark:bg-gray-800 text-gray-900 dark:text-white
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent
                      disabled:opacity-50 disabled:cursor-not-allowed'
@@ -193,7 +199,7 @@ export default function AIChat() {
                     <button
                         type='submit'
                         disabled={isLoading || !input.trim()}
-                        className='absolute right-2 top-1/2 -translate-y-1/2 p-2 
+                        className='absolute right-2 top-1/2 -translate-y-1/2 p-2
                      text-blue-500 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed'
                     >
                         <Send className='w-5 h-5' />

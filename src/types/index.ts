@@ -99,4 +99,5 @@ export interface UseChatReturn {
     error: string | null;
     sendMessage: (message: string) => Promise<void>;
     clearChat: () => void;
+    setInput: (input: string) => void;
 }
