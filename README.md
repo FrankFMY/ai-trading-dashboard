@@ -30,128 +30,29 @@
 - 🔧 **Современная разработка**: TypeScript, ESLint, Prettier, Jest тесты
 - 🚀 **Готов к продакшену**: Оптимизированная сборка и CI/CD готовность
 
-## 🚀 Быстрый старт
+# 🧠 Краткое резюме
 
-### Предварительные требования
+(сюда вставить краткое резюме из PROJECT_SUMMARY.md)
 
-- Node.js 18+
-- Ollama
-- Git
+# 🚀 Быстрый старт
 
-### Известные проблемы и решения
+(сюда вставить подробный быстрый старт из QUICKSTART.md)
 
-- **Ошибка гидратации**: Исправлена проблема с несоответствием серверного и клиентского рендеринга в компоненте CryptoPrices
-- **Временные метки**: Время обновления данных теперь корректно отображается без ошибок гидратации
-- **CI/CD сборка**: Исправлены проблемы с устаревшими опциями Next.js конфигурации и отсутствующим модулем critters
+# 🧪 Тестирование
 
-### Установка и запуск
+Краткое описание процесса тестирования. Подробности — в [TESTING.md](TESTING.md).
 
-```bash
-# 1. Клонирование репозитория
-git clone https://github.com/FrankFMY/ai-trading-dashboard.git
-cd ai-trading-dashboard
+# 🗺️ Roadmap
 
-# 2. Установка зависимостей
-npm install
+(сюда вставить roadmap из ROADMAP.md)
 
-# 3. Настройка Ollama
-ollama pull llama3.2-vision:11b
-ollama serve
+# 🛠️ История изменений и багфиксов
 
-# 4. Запуск приложения
-npm run dev
-```
+(сюда вставить важные фиксы из BUGFIXES_REPORT.md, CI_FIX_REPORT.md, HYDRATION_FIX.md)
 
-Откройте [http://localhost:3000](http://localhost:3000) в браузере.
+# 📝 Отчёт о рефакторинге
 
-### Разработка
-
-```bash
-# Форматирование кода
-npm run format
-
-# Проверка форматирования
-npm run format:check
-
-# Линтинг
-npm run lint
-
-# Исправление ошибок линтера
-npm run lint:fix
-
-# Проверка типов
-npm run type-check
-
-# Запуск тестов
-npm run test
-
-# Тесты в режиме наблюдения
-npm run test:watch
-
-# Покрытие тестами
-npm run test:coverage
-```
-
-## 🏗️ Архитектура
-
-### Технологический стек
-
-- **Frontend**: Next.js 15.4.4 + TypeScript + Tailwind CSS 4.0
-- **AI**: Ollama API с моделью llama3.2-vision:11b
-- **Data**: CoinGecko API для криптовалютных данных
-- **State Management**: Zustand + React Query
-- **UI**: Radix UI, Lucide React иконки, React Markdown
-- **Code Quality**: ESLint, Prettier, Jest
-- **Styling**: Tailwind CSS, Framer Motion
-
-### Структура проекта
-
-```
-ai-trading-dashboard/
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── ai/route.ts          # AI API endpoint
-│   │   │   └── crypto/route.ts      # Crypto data API
-│   │   ├── globals.css              # Глобальные стили
-│   │   ├── layout.tsx               # Layout приложения
-│   │   └── page.tsx                 # Главная страница
-│   ├── components/
-│   │   ├── ui/
-│   │   │   ├── Toast.tsx            # Toast компонент
-│   │   │   ├── Toaster.tsx          # Toast контейнер
-│   │   │   └── useToast.ts          # Toast хук
-│   │   ├── AIChat.tsx               # AI чат компонент
-│   │   ├── CryptoCard.tsx           # Карточка криптовалюты
-│   │   ├── CryptoPrices.tsx         # Список цен криптовалют
-│   │   └── Providers.tsx            # Провайдеры (React Query)
-│   ├── hooks/
-│   │   ├── useChat.ts               # Хук для чата с ИИ
-│   │   └── useCryptoData.ts         # Хук для данных криптовалют
-│   ├── lib/
-│   │   ├── config.ts                # Конфигурация
-│   │   ├── utils.ts                 # Утилиты
-│   │   └── validators.ts            # Валидация
-│   ├── store/
-│   │   └── index.ts                 # Zustand store
-│   └── types/
-│       └── index.ts                 # TypeScript типы
-├── .vscode/                         # Настройки VS Code
-├── .github/                         # GitHub Actions
-├── public/                          # Статические файлы
-├── .prettierrc                      # Конфигурация Prettier
-├── .prettierignore                  # Исключения Prettier
-├── eslint.config.mjs                # Конфигурация ESLint
-├── tsconfig.json                    # Конфигурация TypeScript
-├── next.config.ts                   # Конфигурация Next.js
-├── postcss.config.mjs               # Конфигурация PostCSS
-├── README.md                        # Документация
-├── QUICKSTART.md                    # Быстрый старт
-├── TESTING.md                       # Тестирование
-├── ROADMAP.md                       # Планы развития
-├── PROJECT_SUMMARY.md               # Описание проекта
-└── REFACTORING_REPORT.md            # Отчет о рефакторинге
-```
+(сюда вставить краткое summary из REFACTORING_REPORT.md)
 
 ## 💡 Примеры использования
 
