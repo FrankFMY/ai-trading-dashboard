@@ -1,58 +1,81 @@
 import { createOllama } from 'ollama-ai-provider';
 import { streamText } from 'ai';
+import { validateAiRequestParams } from '@/lib/validators';
+import { config, AI_SYSTEM_PROMPT } from '@/lib/config';
+import { retry } from '@/lib/utils';
 
 const ollama = createOllama({
-    baseURL: 'http://localhost:11434/api',
+    baseURL: config.ollamaBaseUrl,
 });
 
 export async function POST(req: Request) {
     try {
-        const { messages, marketData } = await req.json();
+        const body = await req.json();
 
-        const result = await streamText({
-            model: ollama('llama3.2-vision:11b'),
-            messages: [
+        // Валидация входных данных
+        const validationResult = validateAiRequestParams(body);
+        if (!validationResult.success) {
+            return Response.json(
                 {
-                    role: 'system',
-                    content: `Ты опытный трейдинг-аналитик и финансовый советник. 
-          Анализируй рыночные данные криптовалют и давай профессиональные торговые рекомендации.
-          
-          Учитывай:
-          - Текущие цены и изменения
-          - Технические индикаторы
-          - Рыночные тренды
-          - Объемы торгов
-          - Уровни поддержки и сопротивления
-          
-          Отвечай структурированно с разделами:
-          📈 **Анализ рынка**
-          🎯 **Торговые сигналы** 
-          ⚠️ **Риски**
-          💡 **Рекомендации**`,
+                    success: false,
+                    error: 'Некорректные данные запроса',
+                    details: validationResult.error.errors,
                 },
-                ...messages,
-                ...(marketData
-                    ? [
-                          {
-                              role: 'user' as const,
-                              content: `Актуальные данные рынка: ${JSON.stringify(
-                                  marketData,
-                                  null,
-                                  2
-                              )}`,
-                          },
-                      ]
-                    : []),
-            ],
-            temperature: 0.3,
-            maxTokens: 1000,
-        });
+                { status: 400 }
+            );
+        }
+
+        const { messages, marketData } = validationResult.data;
+
+        // Подготовка сообщений для ИИ
+        const aiMessages = [
+            {
+                role: 'system' as const,
+                content: AI_SYSTEM_PROMPT,
+            },
+            ...messages,
+            ...(marketData
+                ? [
+                      {
+                          role: 'user' as const,
+                          content: `Актуальные данные рынка: ${JSON.stringify(
+                              marketData,
+                              null,
+                              2
+                          )}`,
+                      },
+                  ]
+                : []),
+        ];
+
+        // Отправка запроса к ИИ с retry логикой
+        const result = await retry(
+            async () => {
+                return await streamText({
+                    model: ollama(config.ollamaModel),
+                    messages: aiMessages,
+                    temperature: 0.3,
+                    maxTokens: 1000,
+                });
+            },
+            config.maxRetries,
+            config.retryDelay
+        );
 
         return result.toDataStreamResponse();
     } catch (error) {
         console.error('AI API Error:', error);
+
+        const errorMessage =
+            error instanceof Error ? error.message : 'Неизвестная ошибка';
+
         return Response.json(
-            { error: 'Ошибка обработки запроса ИИ' },
+            {
+                success: false,
+                error: 'Ошибка обработки запроса ИИ',
+                details: errorMessage,
+                timestamp: new Date().toISOString(),
+            },
             { status: 500 }
         );
     }

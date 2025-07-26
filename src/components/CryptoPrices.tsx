@@ -1,79 +1,32 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
-
-interface CoinData {
-    usd: number;
-    usd_24h_change: number;
-    usd_market_cap: number;
-    usd_24h_vol: number;
-}
-
-interface CryptoData {
-    [key: string]: CoinData;
-}
-
-const COIN_INFO = {
-    bitcoin: { name: 'Bitcoin', symbol: 'BTC', color: 'text-orange-500' },
-    ethereum: { name: 'Ethereum', symbol: 'ETH', color: 'text-blue-500' },
-    solana: { name: 'Solana', symbol: 'SOL', color: 'text-purple-500' },
-    cardano: { name: 'Cardano', symbol: 'ADA', color: 'text-blue-600' },
-    polkadot: { name: 'Polkadot', symbol: 'DOT', color: 'text-pink-500' },
-};
+import { Loader2, RefreshCw } from 'lucide-react';
+import { useCryptoData } from '@/hooks/useCryptoData';
+import { useToast } from '@/components/ui/useToast';
+import { COIN_INFO } from '@/lib/config';
+import { formatRelativeTime } from '@/lib/utils';
+import CryptoCard from './CryptoCard';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CryptoPrices() {
-    const [cryptoData, setCryptoData] = useState<CryptoData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data, isLoading, error, refetch } = useCryptoData();
+    const { toast } = useToast();
 
-    const fetchData = async () => {
+    const handleRefresh = async () => {
         try {
-            setError(null);
-            const response = await fetch(
-                '/api/crypto?coins=bitcoin,ethereum,solana,cardano,polkadot'
-            );
-            const result = await response.json();
-
-            if (result.success) {
-                setCryptoData(result.data);
-            } else {
-                setError(result.error || 'Ошибка загрузки данных');
-            }
-        } catch (err) {
-            setError('Ошибка соединения с API');
-            console.error('Fetch error:', err);
-        } finally {
-            setIsLoading(false);
+            await refetch();
+            toast({
+                title: 'Данные обновлены',
+                description: 'Курсы криптовалют успешно обновлены',
+                variant: 'success',
+            });
+        } catch {
+            toast({
+                title: 'Ошибка обновления',
+                description: 'Не удалось обновить данные',
+                variant: 'destructive',
+            });
         }
-    };
-
-    useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 120000); // Обновляем каждые 2 минуты
-        return () => clearInterval(interval);
-    }, []);
-
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 8,
-        }).format(price);
-    };
-
-    const formatChange = (change: number) => {
-        return `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-    };
-
-    const formatMarketCap = (marketCap: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            notation: 'compact',
-            compactDisplay: 'short',
-        }).format(marketCap);
     };
 
     if (isLoading) {
@@ -93,10 +46,11 @@ export default function CryptoPrices() {
         return (
             <div className='bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6'>
                 <div className='text-center text-red-500'>
-                    <p>Ошибка: {error}</p>
+                    <p className='mb-4'>Ошибка: {error}</p>
                     <button
-                        onClick={fetchData}
-                        className='mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'>
+                        onClick={handleRefresh}
+                        className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
+                    >
                         Повторить
                     </button>
                 </div>
@@ -106,67 +60,52 @@ export default function CryptoPrices() {
 
     return (
         <div className='bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6'>
-            <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
-                Цены криптовалют
-            </h2>
-
-            <div className='space-y-4'>
-                {Object.entries(cryptoData || {}).map(([coinId, data]) => {
-                    const coinInfo =
-                        COIN_INFO[coinId as keyof typeof COIN_INFO];
-                    if (!coinInfo) return null;
-
-                    const isPositive = data.usd_24h_change >= 0;
-
-                    return (
-                        <div
-                            key={coinId}
-                            className='flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>
-                            <div className='flex items-center gap-3'>
-                                <div className='w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center'>
-                                    <span
-                                        className={`font-bold text-sm ${coinInfo.color}`}>
-                                        {coinInfo.symbol}
-                                    </span>
-                                </div>
-                                <div>
-                                    <h3 className='font-medium text-gray-900 dark:text-white'>
-                                        {coinInfo.name}
-                                    </h3>
-                                    <p className='text-sm text-gray-500 dark:text-gray-400'>
-                                        {coinInfo.symbol}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className='text-right'>
-                                <div className='font-bold text-lg text-gray-900 dark:text-white'>
-                                    {formatPrice(data.usd)}
-                                </div>
-                                <div
-                                    className={`flex items-center justify-end gap-1 text-sm ${
-                                        isPositive
-                                            ? 'text-green-500'
-                                            : 'text-red-500'
-                                    }`}>
-                                    {isPositive ? (
-                                        <TrendingUp className='w-4 h-4' />
-                                    ) : (
-                                        <TrendingDown className='w-4 h-4' />
-                                    )}
-                                    {formatChange(data.usd_24h_change)}
-                                </div>
-                                <div className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
-                                    Cap: {formatMarketCap(data.usd_market_cap)}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+            <div className='flex items-center justify-between mb-6'>
+                <h2 className='text-xl font-semibold text-gray-900 dark:text-white'>
+                    Цены криптовалют
+                </h2>
+                <button
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    className='flex items-center gap-1 px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors'
+                >
+                    <RefreshCw
+                        className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
+                    />
+                    Обновить
+                </button>
             </div>
 
+            <AnimatePresence>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className='space-y-4'
+                >
+                    {data &&
+                        Object.entries(data).map(([coinId, coinData]) => {
+                            const coinInfo =
+                                COIN_INFO[coinId as keyof typeof COIN_INFO];
+                            if (!coinInfo) return null;
+
+                            return (
+                                <CryptoCard
+                                    key={coinId}
+                                    coinId={coinId}
+                                    data={coinData}
+                                    coinInfo={coinInfo}
+                                />
+                            );
+                        })}
+                </motion.div>
+            </AnimatePresence>
+
             <div className='mt-4 text-xs text-gray-500 dark:text-gray-400 text-center'>
-                Данные предоставлены CoinGecko • Обновляется каждые 2 минуты
+                Данные предоставлены CoinGecko •{' '}
+                {data
+                    ? `Обновлено ${formatRelativeTime(new Date())}`
+                    : 'Нет данных'}
             </div>
         </div>
     );
