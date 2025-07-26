@@ -5,12 +5,6 @@ const nextConfig: NextConfig = {
     poweredByHeader: false,
     compress: true,
 
-    // Оптимизация
-    swcMinify: true,
-    experimental: {
-        optimizeCss: true,
-    },
-
     // Заголовки безопасности
     async headers() {
         return [
