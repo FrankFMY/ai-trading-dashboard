@@ -90,38 +90,46 @@ export const useCryptoStore = create<CryptoStore>()(
 // Store для чата
 export const useChatStore = create<ChatStore>()(
     devtools(
-        set => ({
-            messages: [],
-            isLoading: false,
-            error: null,
-            input: '',
+        persist(
+            set => ({
+                messages: [],
+                isLoading: false,
+                error: null,
+                input: '',
 
-            addMessage: (message: ChatMessage) =>
-                set(state => ({
-                    messages: [...state.messages, message],
-                    error: null,
-                })),
+                addMessage: (message: ChatMessage) =>
+                    set(state => ({
+                        messages: [...state.messages, message],
+                        error: null,
+                    })),
 
-            setMessages: (messages: ChatMessage[]) => set({ messages }),
+                setMessages: (messages: ChatMessage[]) => set({ messages }),
 
-            setLoading: (loading: boolean) => set({ isLoading: loading }),
+                setLoading: (loading: boolean) => set({ isLoading: loading }),
 
-            setError: (error: string | null) =>
-                set({
-                    error,
-                    isLoading: false,
+                setError: (error: string | null) =>
+                    set({
+                        error,
+                        isLoading: false,
+                    }),
+
+                setInput: (input: string) => set({ input }),
+
+                clearChat: () =>
+                    set({
+                        messages: [],
+                        error: null,
+                    }),
+
+                clearError: () => set({ error: null }),
+            }),
+            {
+                name: 'chat-store',
+                partialize: state => ({
+                    messages: state.messages,
                 }),
-
-            setInput: (input: string) => set({ input }),
-
-            clearChat: () =>
-                set({
-                    messages: [],
-                    error: null,
-                }),
-
-            clearError: () => set({ error: null }),
-        }),
+            }
+        ),
         {
             name: 'chat-store',
         }

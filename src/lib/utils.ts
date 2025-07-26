@@ -179,8 +179,12 @@ export function supportsDarkMode(): boolean {
 export function getCurrentTheme(): 'light' | 'dark' {
     if (typeof window === 'undefined') return 'light';
 
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-    if (savedTheme) return savedTheme;
+    try {
+        const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
+        if (savedTheme) return savedTheme;
+    } catch (error) {
+        console.warn('Ошибка при получении темы из localStorage:', error);
+    }
 
     return supportsDarkMode() ? 'dark' : 'light';
 }
@@ -191,30 +195,10 @@ export function getCurrentTheme(): 'light' | 'dark' {
 export function setTheme(theme: 'light' | 'dark'): void {
     if (typeof window === 'undefined') return;
 
-    localStorage.setItem('theme', theme);
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-}
-
-/**
- * Копирует текст в буфер обмена
- */
-export async function copyToClipboard(text: string): Promise<boolean> {
     try {
-        if (navigator.clipboard) {
-            await navigator.clipboard.writeText(text);
-            return true;
-        } else {
-            // Fallback для старых браузеров
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return true;
-        }
+        localStorage.setItem('theme', theme);
+        document.documentElement.classList.toggle('dark', theme === 'dark');
     } catch (error) {
-        console.error('Ошибка копирования в буфер обмена:', error);
-        return false;
+        console.warn('Ошибка при установке темы в localStorage:', error);
     }
 }

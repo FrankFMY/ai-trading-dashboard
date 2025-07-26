@@ -7,10 +7,18 @@ import { COIN_INFO } from '@/lib/config';
 import { formatRelativeTime } from '@/lib/utils';
 import CryptoCard from './CryptoCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 export default function CryptoPrices() {
     const { data, isLoading, error, refetch } = useCryptoData();
     const { toast } = useToast();
+    const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
+
+    useEffect(() => {
+        if (data) {
+            setLastUpdateTime(new Date());
+        }
+    }, [data]);
 
     const handleRefresh = async () => {
         try {
@@ -103,8 +111,8 @@ export default function CryptoPrices() {
 
             <div className='mt-4 text-xs text-gray-500 dark:text-gray-400 text-center'>
                 Данные предоставлены CoinGecko •{' '}
-                {data
-                    ? `Обновлено ${formatRelativeTime(new Date())}`
+                {data && lastUpdateTime
+                    ? `Обновлено ${formatRelativeTime(lastUpdateTime)}`
                     : 'Нет данных'}
             </div>
         </div>

@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatRelativeTime } from '@/lib/utils';
 
 export default function AIChat() {
+    const { data: cryptoData } = useCryptoData();
     const {
         messages,
         input,
@@ -17,8 +18,7 @@ export default function AIChat() {
         sendMessage,
         clearChat,
         setInput,
-    } = useChat();
-    const { data: cryptoData } = useCryptoData();
+    } = useChat(cryptoData || undefined);
     const { toast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +27,7 @@ export default function AIChat() {
 
         const message = input.trim();
         try {
-            await sendMessage(message);
+            sendMessage(message);
         } catch {
             toast({
                 title: 'Ошибка отправки',

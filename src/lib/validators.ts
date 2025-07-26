@@ -25,7 +25,7 @@ export const cryptoApiResponseSchema = apiResponseSchema(cryptoDataSchema);
 export const chatMessageSchema = z.object({
     role: z.enum(['user', 'assistant', 'system']),
     content: z.string().min(1).max(1000),
-    timestamp: z.string().datetime().optional(),
+    timestamp: z.string().optional(), // Убрал .datetime() так как используем ISO string
 });
 
 export const chatMessagesSchema = z.array(chatMessageSchema);

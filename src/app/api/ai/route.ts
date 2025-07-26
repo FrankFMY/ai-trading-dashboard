@@ -1,6 +1,5 @@
 import { createOllama } from 'ollama-ai-provider';
 import { streamText } from 'ai';
-import { validateAiRequestParams } from '@/lib/validators';
 import { config, AI_SYSTEM_PROMPT } from '@/lib/config';
 import { retry } from '@/lib/utils';
 
@@ -11,58 +10,74 @@ const ollama = createOllama({
 export async function POST(req: Request) {
     try {
         const body = await req.json();
+        console.log('AI API request body:', body);
 
-        // Валидация входных данных
-        const validationResult = validateAiRequestParams(body);
-        if (!validationResult.success) {
+        // Проверяем формат запроса от библиотеки ai
+        if (body.messages && Array.isArray(body.messages)) {
+            // Формат от библиотеки ai
+            const messages = body.messages;
+            const marketData = body.marketData;
+
+            console.log('Market data received:', marketData ? 'Yes' : 'No');
+            if (marketData) {
+                console.log('Market data keys:', Object.keys(marketData));
+            }
+
+            // Подготовка сообщений для ИИ
+            const aiMessages = [
+                {
+                    role: 'system' as const,
+                    content: AI_SYSTEM_PROMPT,
+                },
+                ...messages,
+                ...(marketData
+                    ? [
+                          {
+                              role: 'user' as const,
+                              content: `Актуальные данные рынка криптовалют: ${JSON.stringify(
+                                  marketData,
+                                  null,
+                                  2
+                              )}`,
+                          },
+                      ]
+                    : []),
+            ];
+
+            console.log('Sending to Ollama:', aiMessages.length, 'messages');
+            console.log(
+                'Last message content preview:',
+                aiMessages[aiMessages.length - 1]?.content?.substring(0, 100) +
+                    '...'
+            );
+
+            // Отправка запроса к ИИ с retry логикой
+            const result = await retry(
+                async () => {
+                    return await streamText({
+                        model: ollama(config.ollamaModel),
+                        messages: aiMessages,
+                        temperature: 0.3,
+                        maxTokens: 1000,
+                    });
+                },
+                config.maxRetries,
+                config.retryDelay
+            );
+
+            // Возвращаем правильный формат для библиотеки ai
+            return result.toDataStreamResponse();
+        } else {
+            // Для других форматов возвращаем ошибку
             return Response.json(
                 {
                     success: false,
-                    error: 'Некорректные данные запроса',
-                    details: validationResult.error.errors,
+                    error: 'Неподдерживаемый формат запроса',
+                    details: 'Ожидается массив messages',
                 },
                 { status: 400 }
             );
         }
-
-        const { messages, marketData } = validationResult.data;
-
-        // Подготовка сообщений для ИИ
-        const aiMessages = [
-            {
-                role: 'system' as const,
-                content: AI_SYSTEM_PROMPT,
-            },
-            ...messages,
-            ...(marketData
-                ? [
-                      {
-                          role: 'user' as const,
-                          content: `Актуальные данные рынка: ${JSON.stringify(
-                              marketData,
-                              null,
-                              2
-                          )}`,
-                      },
-                  ]
-                : []),
-        ];
-
-        // Отправка запроса к ИИ с retry логикой
-        const result = await retry(
-            async () => {
-                return await streamText({
-                    model: ollama(config.ollamaModel),
-                    messages: aiMessages,
-                    temperature: 0.3,
-                    maxTokens: 1000,
-                });
-            },
-            config.maxRetries,
-            config.retryDelay
-        );
-
-        return result.toDataStreamResponse();
     } catch (error) {
         console.error('AI API Error:', error);
 

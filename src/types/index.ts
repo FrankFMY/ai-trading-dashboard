@@ -97,7 +97,7 @@ export interface UseChatReturn {
     input: string;
     isLoading: boolean;
     error: string | null;
-    sendMessage: (message: string) => Promise<void>;
+    sendMessage: (message: string) => void;
     clearChat: () => void;
     setInput: (input: string) => void;
 }
